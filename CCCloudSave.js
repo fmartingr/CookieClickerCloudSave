@@ -20,6 +20,7 @@ var CCCloud = {};
 // Init config
 CCCloud.Config = {
   varName: {
+    localStorageBackupKey: 'CCCloud.backupSaveString',
     localStorageKey: 'CCCloud.lastSave',
     remoteStorageKey: 'savegame'
   },
@@ -191,21 +192,24 @@ CCCloud.start = function() {
   // Get provider synced save
   this.$provider.load(function(syncedSave) {
     if (syncedSave && CCCloud.State.lastSynced) {
+      // If both local and cloud are available, the newer is used.
       if (syncedSave.time > CCCloud.State.lastSynced.time) {
-        console.log('Synced is newer');
         CCCloud.Save.load(syncedSave);
       } else {
-        console.log('Local is newer');
         CCCloud.$provider.save(CCCloud.State.lastSynced);
       }
     } else if (syncedSave && !CCCloud.State.lastSynced) {
-      console.log('Local not present, using synced');
+      // If not local save is present but a cloud is
+      // Backup current game, just in case!
+      localStorage.setItem(CCCloud.Config.varName.localStorageBackupKey, CCCloud.Save.get());
       CCCloud.Save.load(syncedSave);
     } else if (!syncedSave && CCCloud.State.lastSynced) {
-      console.log('Synced not present, using local')
+      // If not cloud save is present but local is
       CCCloud.$provider.save(CCCloud.Save.getForStorage(CCCloud.State.lastSynced.game));
     } else {
-      console.log('Synced nor local present')
+      // If there's no cloud or local save present
+      // Backup current game, just in case!
+      localStorage.setItem(CCCloud.Config.varName.localStorageBackupKey, CCCloud.Save.get());
       CCCloud.Save.sync();
     }
   })
