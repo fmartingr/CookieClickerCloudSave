@@ -15,19 +15,19 @@ Object.extend = function(destination, source) {
 };
 
 // Addon main object
-var CCSync = {};
+var CCCloud = {};
 
 // Init config
-CCSync.Config = {
+CCCloud.Config = {
   varName: {
-    localStorageKey: 'CCSync.lastSave',
+    localStorageKey: 'CCCloud.lastSave',
     remoteStorageKey: 'savegame'
   },
   interval: 30 // Default interval to autosync the game
 }
 
 // Internal mod state
-CCSync.State = {
+CCCloud.State = {
   lastSave: { // Empty last save state to initialize states
     time: 0,
     str: ''
@@ -35,40 +35,40 @@ CCSync.State = {
 };
 
 // Init providers
-CCSync.Providers = {};
-CCSync.Providers.Firebase = {};
-CCSync.Providers.Firebase.init = function() {
-  CCSync.State._providerLoadFinished = false;
+CCCloud.Providers = {};
+CCCloud.Providers.Firebase = {};
+CCCloud.Providers.Firebase.init = function() {
+  CCCloud.State._providerLoadFinished = false;
   var script = document.createElement('script');
   script.type = 'text/javascript';
   script.setAttribute('src', 'https://cdn.firebase.com/js/client/2.4.0/firebase.js');
   script.onload = function() {
-    CCSync.State._providerLoadFinished = true;
-    CCSync.State._firebase = new Firebase(CCSync.Config.providerConf.url);
+    CCCloud.State._providerLoadFinished = true;
+    CCCloud.State._firebase = new Firebase(CCCloud.Config.providerConf.url);
   };
   document.head.appendChild(script);
 };
-CCSync.Providers.Firebase._setKey = function(key, value, callback) {
-  CCSync.State._firebase.child(key).set(value, callback);
+CCCloud.Providers.Firebase._setKey = function(key, value, callback) {
+  CCCloud.State._firebase.child(key).set(value, callback);
 };
-CCSync.Providers.Firebase._getKey = function(key, callback) {
-  CCSync.State._firebase.child(key).once('value', function(result) {
+CCCloud.Providers.Firebase._getKey = function(key, callback) {
+  CCCloud.State._firebase.child(key).once('value', function(result) {
     callback(result.val());
   });
 };
-CCSync.Providers.Firebase.save = function(data, callback) {
-  this._setKey(CCSync.Config.varName.remoteStorageKey, data, function(error) {
+CCCloud.Providers.Firebase.save = function(data, callback) {
+  this._setKey(CCCloud.Config.varName.remoteStorageKey, data, function(error) {
     // TODO handle errors
     if (!error && callback) callback(true);
   })
 };
-CCSync.Providers.Firebase.load = function(callback) {
-  this._getKey(CCSync.Config.varName.remoteStorageKey, function(result) {
+CCCloud.Providers.Firebase.load = function(callback) {
+  this._getKey(CCCloud.Config.varName.remoteStorageKey, function(result) {
     // TODO handle errors
     callback(result);
   });
 };
-CCSync.Providers.Firebase.testConfig = function(callback) {
+CCCloud.Providers.Firebase.testConfig = function(callback) {
   var $provider = this;
   $provider._setKey('_check', "y", function(error) {
     $provider._getKey('_check', function(result) {
@@ -79,55 +79,55 @@ CCSync.Providers.Firebase.testConfig = function(callback) {
 };
 
 // Notifications
-CCSync.Notifications = {};
-CCSync.Notifications.notify = function(content) {
+CCCloud.Notifications = {};
+CCCloud.Notifications.notify = function(content) {
   Game.Notify('CookieClicker Sync', content, null, false);
 };
-CCSync.Notifications.quickNotify = function(content) {
+CCCloud.Notifications.quickNotify = function(content) {
   Game.Notify(content, '', null, true);
 };
 
 // Interval
-CCSync.Interval = {};
-CCSync.Interval.start = function() {
-  if (CCSync.State._interval) CCSync.State.stop();
-  setInterval(function() { CCSync.Interval.run() }, CCSync.Config.interval*1000)
+CCCloud.Interval = {};
+CCCloud.Interval.start = function() {
+  if (CCCloud.State._interval) CCCloud.State.stop();
+  setInterval(function() { CCCloud.Interval.run() }, CCCloud.Config.interval*1000)
 };
 
-CCSync.Interval.stop = function() {
-  if (CCSync.State._interval) clearInterval(CCSync.State._interval);
+CCCloud.Interval.stop = function() {
+  if (CCCloud.State._interval) clearInterval(CCCloud.State._interval);
 };
 
-CCSync.Interval.run = function() {
-  CCSync.Save.sync();
-  CCSync.Notifications.quickNotify('Save game synced');
+CCCloud.Interval.run = function() {
+  CCCloud.Save.sync();
+  CCCloud.Notifications.quickNotify('Save game synced');
 }
 
 // Game save
-CCSync.Save = {};
-CCSync.Save.getForStorage = function(game) {
-  return { game: game, time: CCSync.Utils.getTime() }
+CCCloud.Save = {};
+CCCloud.Save.getForStorage = function(game) {
+  return { game: game, time: CCCloud.Utils.getTime() }
 }
-CCSync.Save.load = function(save) {
+CCCloud.Save.load = function(save) {
   Game.LoadSave(save.game);
   this._setLastSave(save);
 };
-CCSync.Save._setLastSave = function(save) {
-  localStorage.setItem(CCSync.Config.varName.localStorageKey, JSON.stringify(save));
+CCCloud.Save._setLastSave = function(save) {
+  localStorage.setItem(CCCloud.Config.varName.localStorageKey, JSON.stringify(save));
 }
-CCSync.Save.get = function() {
+CCCloud.Save.get = function() {
   return Game.WriteSave(1);
 };
-CCSync.Save.sync = function() {
+CCCloud.Save.sync = function() {
   var save = this.getForStorage(this.get());
   console.log(save)
-  CCSync.$provider.save(save);
+  CCCloud.$provider.save(save);
   this._setLastSave(save);
 };
 
 // Utils
-CCSync.Utils = {};
-CCSync.Utils.getTime = function() {
+CCCloud.Utils = {};
+CCCloud.Utils.getTime = function() {
   if (!Date.now) {
     // Fix for old browsers. Probably not needed, but...
     return new Date().getTime();
@@ -136,9 +136,9 @@ CCSync.Utils.getTime = function() {
   }
 };
 
-CCSync.init = function() {
+CCCloud.init = function() {
   // Load user configuration
-  Object.extend(this.Config, Game.CCSyncConfig);
+  Object.extend(this.Config, Game.CCCloudSaveConfig);
 
   // Load provider if configured and present
   if (!this.Config.provider) {
@@ -147,7 +147,7 @@ CCSync.init = function() {
   }
 
   if (!(this.Config.provider in this.Providers)) {
-    CCSync.Notifications.notify('Failed to start: Provider ' + this.Config.provider + ' does not exist.');
+    CCCloud.Notifications.notify('Failed to start: Provider ' + this.Config.provider + ' does not exist.');
     return false;
   }
 
@@ -156,29 +156,29 @@ CCSync.init = function() {
 
   this.State._providerLoadInterval = setInterval(function() {
                                        // TODO Check iterations and break at some point.
-                                         if (CCSync.State._providerLoadFinished) {
-                                           clearInterval(CCSync.State._providerLoadInterval);
-                                           CCSync.State._providerLoadInterval = null;
-                                           CCSync.checkStuff();
+                                         if (CCCloud.State._providerLoadFinished) {
+                                           clearInterval(CCCloud.State._providerLoadInterval);
+                                           CCCloud.State._providerLoadInterval = null;
+                                           CCCloud.checkStuff();
                                          }
                                        }, 500);
   return true;
 };
 
-CCSync.checkStuff = function() {
+CCCloud.checkStuff = function() {
   // Check provider
   this.Providers[this.Config.provider].testConfig(function(success) {
     if (success) {
-      CCSync.start();
+      CCCloud.start();
       return true;
     } else {
-      CCSync.Notifications.notify('Failed to start: Check your provider configuration.');
+      CCCloud.Notifications.notify('Failed to start: Check your provider configuration.');
       return false;
     }
   });
 };
 
-CCSync.start = function() {
+CCCloud.start = function() {
   // Load current epoch time
   this.State.epoch = this.Utils.getTime();
 
@@ -190,31 +190,31 @@ CCSync.start = function() {
 
   // Get provider synced save
   this.$provider.load(function(syncedSave) {
-    if (syncedSave && CCSync.State.lastSynced) {
-      if (syncedSave.time > CCSync.State.lastSynced.time) {
+    if (syncedSave && CCCloud.State.lastSynced) {
+      if (syncedSave.time > CCCloud.State.lastSynced.time) {
         console.log('Synced is newer');
-        CCSync.Save.load(syncedSave);
+        CCCloud.Save.load(syncedSave);
       } else {
         console.log('Local is newer');
-        CCSync.$provider.save(CCSync.State.lastSynced);
+        CCCloud.$provider.save(CCCloud.State.lastSynced);
       }
-    } else if (syncedSave && !CCSync.State.lastSynced) {
+    } else if (syncedSave && !CCCloud.State.lastSynced) {
       console.log('Local not present, using synced');
-      CCSync.Save.load(syncedSave);
-    } else if (!syncedSave && CCSync.State.lastSynced) {
+      CCCloud.Save.load(syncedSave);
+    } else if (!syncedSave && CCCloud.State.lastSynced) {
       console.log('Synced not present, using local')
-      CCSync.$provider.save(CCSync.Save.getForStorage(CCSync.State.lastSynced.game));
+      CCCloud.$provider.save(CCCloud.Save.getForStorage(CCCloud.State.lastSynced.game));
     } else {
       console.log('Synced nor local present')
-      CCSync.Save.sync();
+      CCCloud.Save.sync();
     }
   })
 
   // Autosync every Config.timer seconds.
-  CCSync.Interval.start();
+  CCCloud.Interval.start();
 
   return true; // Loaded succesfully.
 };
 
 // Init mod
-CCSync.init();
+CCCloud.init();

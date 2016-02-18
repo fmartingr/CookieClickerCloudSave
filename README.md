@@ -10,10 +10,10 @@ Add this code to a bookmark on your browser.
 
 ``` javascript
 javascript: (function () {
-    Game.CCSyncConfig = {
+    Game.CCCloudSaveConfig = {
         // Read configuration section
     };
-    Game.LoadMod('http://localhost:8001/CCSync.js');
+    Game.LoadMod('http://localhost:8001/CCCloudSave.js');
 }());
 ```
 
