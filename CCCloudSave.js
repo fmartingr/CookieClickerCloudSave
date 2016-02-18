@@ -121,7 +121,6 @@ CCCloud.Save.get = function() {
 };
 CCCloud.Save.sync = function() {
   var save = this.getForStorage(this.get());
-  console.log(save)
   CCCloud.$provider.save(save);
   this._setLastSave(save);
 };
@@ -136,6 +135,20 @@ CCCloud.Utils.getTime = function() {
     return Date.now();
   }
 };
+
+CCCloud.Log = {}
+CCCloud.Log._log = function(level, message) {
+  if (window.console) console[level](message);
+}
+CCCloud.Log.info = function(message) {
+  this._log('info', message);
+}
+CCCloud.Log.error = function(message) {
+  this._log('error', message);
+}
+CCCloud.Log.warning = function(message) {
+  this._log('warning', message);
+}
 
 CCCloud.init = function() {
   // Load user configuration
@@ -194,20 +207,26 @@ CCCloud.start = function() {
     if (syncedSave && CCCloud.State.lastSynced) {
       // If both local and cloud are available, the newer is used.
       if (syncedSave.time > CCCloud.State.lastSynced.time) {
+        CCCloud.Log.info('Cloud file is newer than last local synced save.');
         CCCloud.Save.load(syncedSave);
       } else {
+        CCCloud.Log.info('Last local synced save is newer than cloud save.');
         CCCloud.$provider.save(CCCloud.State.lastSynced);
       }
     } else if (syncedSave && !CCCloud.State.lastSynced) {
       // If not local save is present but a cloud is
+      CCCloud.Log.info('Last local save not present. Overwriting with cloud save.');
       // Backup current game, just in case!
       localStorage.setItem(CCCloud.Config.varName.localStorageBackupKey, CCCloud.Save.get());
       CCCloud.Save.load(syncedSave);
     } else if (!syncedSave && CCCloud.State.lastSynced) {
       // If not cloud save is present but local is
+      // TODO is this clause really needed?
+      CCCloud.Log.info('Cloud save not present, using last local synced save.');
       CCCloud.$provider.save(CCCloud.Save.getForStorage(CCCloud.State.lastSynced.game));
     } else {
       // If there's no cloud or local save present
+      CCCloud.Log.info('Cloud/Last local synced save not present. Using last game status.');
       // Backup current game, just in case!
       localStorage.setItem(CCCloud.Config.varName.localStorageBackupKey, CCCloud.Save.get());
       CCCloud.Save.sync();
