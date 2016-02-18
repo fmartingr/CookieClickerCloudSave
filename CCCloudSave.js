@@ -213,6 +213,8 @@ CCCloud.start = function() {
   // Autosync every Config.timer seconds.
   CCCloud.Interval.start();
 
+  Game.Win('Third-party');
+
   return true; // Loaded succesfully.
 };
 
