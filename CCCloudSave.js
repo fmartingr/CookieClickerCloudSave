@@ -14,10 +14,12 @@ Object.extend = function(destination, source) {
   return destination;
 };
 
-// Addon main object
+/*
+ * CCCloud main object
+ */
 var CCCloud = {};
 
-// Init config
+// Initial configuration variables
 CCCloud.Config = {
   varName: {
     localStorageBackupKey: 'CCCloud.backupSaveString',
@@ -27,7 +29,10 @@ CCCloud.Config = {
   interval: 30 // Default interval to autosync the game
 }
 
-// Internal mod state
+/*
+ * State machine
+ * Useful to store status for the various components of the addon.
+ */
 CCCloud.State = {
   lastSave: { // Empty last save state to initialize states
     time: 0,
@@ -35,10 +40,15 @@ CCCloud.State = {
   }
 };
 
-// Init providers
+/*
+ * Providers
+ */
 CCCloud.Providers = {};
+
+// Firebase
 CCCloud.Providers.Firebase = {};
 CCCloud.Providers.Firebase.init = function() {
+  // Init loads the official firebase javascript library
   CCCloud.State._providerLoadFinished = false;
   var script = document.createElement('script');
   script.type = 'text/javascript';
@@ -79,7 +89,9 @@ CCCloud.Providers.Firebase.testConfig = function(callback) {
   });
 };
 
-// Notifications
+/*
+ * Notifications
+ */
 CCCloud.Notifications = {};
 CCCloud.Notifications.notify = function(content) {
   Game.Notify('CookieClicker Sync', content, null, false);
@@ -88,7 +100,10 @@ CCCloud.Notifications.quickNotify = function(content) {
   Game.Notify(content, '', null, true);
 };
 
-// Interval
+/*
+ * Interval
+ * Handles the interval that syncs the save with the provider
+ */
 CCCloud.Interval = {};
 CCCloud.Interval.start = function() {
   if (CCCloud.State._interval) CCCloud.State.stop();
@@ -104,7 +119,9 @@ CCCloud.Interval.run = function() {
   CCCloud.Notifications.quickNotify('Save game synced');
 }
 
-// Game save
+/*
+ * Saves
+ */
 CCCloud.Save = {};
 CCCloud.Save.getForStorage = function(game) {
   return { game: game, time: CCCloud.Utils.getTime() }
@@ -125,7 +142,9 @@ CCCloud.Save.sync = function() {
   this._setLastSave(save);
 };
 
-// Utils
+/*
+ * Utils
+ */
 CCCloud.Utils = {};
 CCCloud.Utils.getTime = function() {
   if (!Date.now) {
@@ -136,6 +155,9 @@ CCCloud.Utils.getTime = function() {
   }
 };
 
+/*
+ * Addon logging helpers
+ */
 CCCloud.Log = {}
 CCCloud.Log._log = function(level, message) {
   if (window.console) console[level](message);
@@ -150,6 +172,9 @@ CCCloud.Log.warning = function(message) {
   this._log('warning', message);
 }
 
+/*
+ * Startup phases
+ */
 CCCloud.init = function() {
   // Load user configuration
   Object.extend(this.Config, Game.CCCloudSaveConfig);
@@ -236,10 +261,11 @@ CCCloud.start = function() {
   // Autosync every Config.timer seconds.
   CCCloud.Interval.start();
 
+  // Give the player the 'third party' achievement
   Game.Win('Third-party');
 
   return true; // Loaded succesfully.
 };
 
 // Init mod
-CCCloud.init();
+CCCloud.init()
