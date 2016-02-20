@@ -13,7 +13,7 @@ javascript: (function () {
     Game.CCCloudSaveConfig = {
         // Read configuration section
     };
-    Game.LoadMod('http://localhost:8001/CCCloudSave.js');
+    Game.LoadMod('http://fmartingr.neocities.org/cccloud/CCCloudSave.js');
 }());
 ```
 
