@@ -1,5 +1,5 @@
-Cookie Clicker Sync
-===================
+Cookie Clicker Cloud Save
+=========================
 
 Cookie Clicker add-on to sync your save automatically with a custom provider.
 
