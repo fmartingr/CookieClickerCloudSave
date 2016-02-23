@@ -107,7 +107,7 @@ CCCloud.Notifications.quickNotify = function(content) {
 CCCloud.Interval = {};
 CCCloud.Interval.start = function() {
   if (CCCloud.State._interval) CCCloud.State.stop();
-  CCCloud.Sate._interval = setInterval(function() { CCCloud.Interval.run() }, CCCloud.Config.interval*1000)
+  CCCloud.State._interval = setInterval(function() { CCCloud.Interval.run() }, CCCloud.Config.interval*1000)
 };
 
 CCCloud.Interval.stop = function() {
